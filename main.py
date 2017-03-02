@@ -19,14 +19,16 @@ class BlogHandler(webapp2.RequestHandler):
             Get all posts by a specific user, ordered by creation date (descending).
             The user parameter will be a User object.
         """
+        query = Post.all().order('-created').filter("author", user)
+        return query.fetch(limit=limit, offset=offset)
 
-        # TODO - filter the query so that only posts by the given user
-        return None
 
     def get_user_by_name(self, username):
         """ Get a user object from the db, based on their username """
         user = db.GqlQuery("SELECT * FROM User WHERE username = '%s'" % username)
+        """ user returned from GqlQuery is a query object that could contain more than 1 result """
         if user:
+            """ use get() to retrieve first User object in the query object """
             return user.get()
 
     def login_user(self, user):
@@ -153,6 +155,7 @@ class ViewPostHandler(BlogHandler):
         """ Render a page with post determined by the id (via the URL/permalink) """
 
         post = Post.get_by_id(int(id))
+
         if post:
             t = jinja_env.get_template("post.html")
             response = t.render(post=post)
